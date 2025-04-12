@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class LoggingAspect {
 
 
-    @Around("execution(* com.techblog.controller.UserController.*(..))")
+    @Around("execution(* com.techblog.controller..*.*(..))")
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         // 获取请求对象
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();

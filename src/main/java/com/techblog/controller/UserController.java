@@ -11,6 +11,7 @@ import com.techblog.service.IUserInfoService;
 import com.techblog.service.IUserService;
 import com.techblog.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

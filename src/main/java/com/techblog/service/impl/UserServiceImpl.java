@@ -10,7 +10,10 @@ import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
 import com.techblog.dto.UserDTO;
 import com.techblog.entity.User;
+import com.techblog.entity.UserInfo;
+import com.techblog.mapper.UserInfoMapper;
 import com.techblog.mapper.UserMapper;
+import com.techblog.service.IUserInfoService;
 import com.techblog.service.IUserService;
 import com.techblog.utils.RedisConstants;
 import com.techblog.utils.RegexUtils;
@@ -22,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +47,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private UserInfoMapper userInfoMapper;
+
+    @Resource
+    private IUserInfoService userInfoService;
 
     @Override
     public Result sendCode(String phone) {
@@ -203,13 +213,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok(count);
     }
 
-    private User createUserWithPhone(String phone) {
-        // 1.创建用户
+    @Transactional
+    public User createUserWithPhone(String phone) {
         User user = new User();
         user.setPhone(phone);
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
-        // 2.保存用户
         save(user);
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUserId(user.getId());
+        userInfoService.addUserInfo(userInfo);
+
         return user;
     }
 
