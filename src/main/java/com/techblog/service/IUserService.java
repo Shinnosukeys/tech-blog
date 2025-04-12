@@ -5,17 +5,17 @@ import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
 import com.techblog.entity.User;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 public interface IUserService extends IService<User> {
 
-    Result sendCode(String phone, HttpSession session);
+    Result sendCode(String phone);
 
-    Result sendCode2(String phone, HttpSession session);
+    Result login(LoginFormDTO loginForm);
 
-    Result login(LoginFormDTO loginForm, HttpSession session);
+    Result loginByJWT(LoginFormDTO loginForm);
 
-    Result login2(LoginFormDTO loginForm, HttpSession session);
+    Result logout(HttpServletRequest request);
 
     Result sign();
 

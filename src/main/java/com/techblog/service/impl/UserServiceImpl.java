@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
@@ -11,21 +12,26 @@ import com.techblog.dto.UserDTO;
 import com.techblog.entity.User;
 import com.techblog.mapper.UserMapper;
 import com.techblog.service.IUserService;
+import com.techblog.utils.RedisConstants;
 import com.techblog.utils.RegexUtils;
 import com.techblog.utils.UserHolder;
+import com.techblog.utils.constants.JwtConstants;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.Date;
 
 import static com.techblog.utils.RedisConstants.*;
 import static com.techblog.utils.SystemConstants.USER_NICK_NAME_PREFIX;
@@ -39,7 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public Result sendCode(String phone, HttpSession session) {
+    public Result sendCode(String phone) {
         // 1.校验手机号
         if (RegexUtils.isPhoneInvalid(phone)) {
             // 2.如果不符合，返回错误信息
@@ -48,32 +54,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 3.符合，生成验证码
         String code = RandomUtil.randomNumbers(6);
 
-        // 4.保存验证码到 session
+        // 4.保存验证码+phone到 redis
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
 
         // 5.发送验证码
         log.debug("发送短信验证码成功，验证码：{}", code);
-        // 返回ok
-        return Result.ok();
-    }
-
-    @Override
-    public Result sendCode2(String phone, HttpSession session) {
-        // 1.校验手机号
-        if (RegexUtils.isPhoneInvalid(phone)) {
-            // 2.如果不符合，返回错误信息
-            return Result.fail("手机号校验失败，请重新校验手机号是否正确！");
-        }
-
-        // 3.符合，生成验证码
-        String code = RandomUtil.randomNumbers(6);
-
-        // 4.保存验证码到 redis
-        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, 60, TimeUnit.SECONDS);
-
-        // 5.发送验证码
-        log.debug("短信验证码发送成功，验证码：{}", code);
-
         // 返回ok并包含验证码
         Result result = Result.ok();
         result.setData(code);
@@ -81,32 +66,63 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public Result login(LoginFormDTO loginForm, HttpSession session) {
-        // 1.校验手机号
-        String phone = loginForm.getPhone();
-        if (RegexUtils.isPhoneInvalid(phone)) {
-            // 2.如果不符合，返回错误信息
-            return Result.fail("手机号格式错误！");
-        }
-        // 3.从redis获取验证码并校验
-        String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
-        String code = loginForm.getCode();
-        if (cacheCode == null || !cacheCode.equals(code)) {
-            // 不一致，报错
-            return Result.fail("验证码错误");
+    public Result login(LoginFormDTO loginForm) {
+        // 1. 校验手机号+验证码，获取用户
+        Result verifyResult = verifyPhoneAndUser(loginForm);
+        if (!verifyResult.getSuccess()) {
+            return verifyResult; // 直接返回校验失败结果
         }
 
-        // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
-        User user = query().eq("phone", phone).one();
-
-        // 5.判断用户是否存在
-        if (user == null) {
-            // 6.不存在，创建新用户并保存
-            user = createUserWithPhone(phone);
-
-        }
+        User user = (User) verifyResult.getData(); // 从 Result 中获取用户
         // 8.返回token
         return Result.ok(generateToken(user));
+    }
+
+
+    @Override
+    public Result loginByJWT(LoginFormDTO loginForm) {
+        // 1. 校验手机号+验证码，获取用户
+        Result verifyResult = verifyPhoneAndUser(loginForm);
+        if (!verifyResult.getSuccess()) {
+            return verifyResult; // 直接返回校验失败结果
+        }
+        User user = (User) verifyResult.getData(); // 从 Result 中获取用户
+
+        // 2. 生成 JWT（包含用户 ID 和必要信息）
+        String jwtToken = Jwts.builder()
+                .setSubject(String.valueOf(user.getId())) // 主题：用户 ID
+                .claim("nickName", user.getNickName())   // 自定义载荷：昵称
+                .claim("icon", user.getIcon())           // 自定义载荷：头像
+                .setExpiration(new Date(System.currentTimeMillis() + JwtConstants.TOKEN_TTL)) // 过期时间
+                .signWith(SignatureAlgorithm.HS256, JwtConstants.SECRET_KEY) // 签名算法
+                .compact(); // 生成完整 JWT
+
+        // 3. 返回 JWT（带 Bearer 前缀）
+        return Result.ok(JwtConstants.BEARER_PREFIX + jwtToken);
+    }
+
+    @Override
+    public Result logout(HttpServletRequest request) {
+        // 1. 从请求头获取 Token（格式：Bearer <token>）
+        String tokenWithPrefix = request.getHeader("Authorization");
+        if (StrUtil.isBlank(tokenWithPrefix)) {
+            return Result.ok(); // 无 Token 直接视为注销成功（可能已过期）
+        }
+
+        // 2. 剥离 "Bearer " 前缀
+        String pureToken = StrUtil.removePrefixIgnoreCase(tokenWithPrefix, "Bearer ");
+        if (StrUtil.isBlank(pureToken)) {
+            return Result.ok(); // 无效格式，静默处理（或返回错误）
+        }
+
+        // 3. 构建 Redis 键并删除
+        String key = RedisConstants.LOGIN_USER_KEY + pureToken;
+        stringRedisTemplate.delete(key); // 移除 Redis 中的用户登录状态
+
+        // 4. 清除 ThreadLocal 中的用户信息（确保当前请求后续逻辑无残留）
+        UserHolder.removeUser();
+
+        return Result.ok(); // 返回注销成功
     }
 
     public String generateToken(User user) {
@@ -126,34 +142,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 7.4.设置token有效期
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
         return token;
-    }
-
-    @Override
-    public Result login2(LoginFormDTO loginForm, HttpSession session) {
-        String phone = loginForm.getPhone();
-        // 1.校验手机号
-        if (RegexUtils.isPhoneInvalid(phone)) {
-            return Result.fail("手机号校验失败！");
-        }
-        // 2.校验验证码
-        String redisCacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
-        String code = loginForm.getCode();
-        if (redisCacheCode == null || !redisCacheCode.equals(code)) {
-            return Result.fail("验证码校验失败");
-        }
-        // 3.根据手机号查询用户
-        User user = query().eq("phone", phone).one();
-        // 4.用户不存在，创建用户
-        if (user == null) {
-            try {
-                user = createUserWithPhone(phone);
-            } catch (RuntimeException e) {
-                log.debug("创建用户失败", e);
-                return Result.fail("创建用户失败！请稍后再试");
-            }
-        }
-        // 生成用户token
-        return Result.ok(generateToken(user));
     }
 
 
@@ -223,5 +211,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 2.保存用户
         save(user);
         return user;
+    }
+
+
+    private Result verifyPhoneAndUser(LoginFormDTO loginForm) {
+        // 1.校验手机号
+        String phone = loginForm.getPhone();
+        if (RegexUtils.isPhoneInvalid(phone)) {
+            // 2.如果不符合，返回错误信息
+            return Result.fail("手机号格式错误！");
+        }
+        // 3.从redis获取验证码并校验
+        String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
+        String code = loginForm.getCode();
+        if (cacheCode == null || !cacheCode.equals(code)) {
+            // 不一致，报错
+            return Result.fail("验证码错误");
+        }
+
+        // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
+        User user = query().eq("phone", phone).one();
+
+        // 5.判断用户是否存在
+        if (user == null) {
+            // 6.不存在，创建新用户并保存
+            user = createUserWithPhone(phone);
+        }
+        // 4. 清理已使用的验证码（可选优化）
+        stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
+
+        // 5. 返回成功结果，携带用户信息
+        return Result.ok(user); // 用户对象存入 Result.data
     }
 }
