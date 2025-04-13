@@ -195,7 +195,7 @@ CREATE TABLE `tb_user_info`  (
     `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`user_id`) USING BTREE,
     -- 添加外键约束，将 tb_user_info 的 user_id 关联到 tb_user 的 id
-                                 CONSTRAINT `fk_user_info_user` FOREIGN KEY (`user_id`) REFERENCES `tb_user` (`id`)
+    CONSTRAINT `fk_user_info_user` FOREIGN KEY (`user_id`) REFERENCES `tb_user` (`id`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
@@ -249,3 +249,65 @@ CREATE TABLE `tb_voucher_order`  (
 -- ----------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+-- ----------------------------
+-- New
+-- ----------------------------
+CREATE TABLE tb_articles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(120) NOT NULL COMMENT '标题',
+    slug VARCHAR(120) UNIQUE COMMENT 'SEO友好URL',
+    content LONGTEXT NOT NULL COMMENT '正文（支持Markdown）',
+    summary VARCHAR(255) COMMENT '摘要',
+    cover_image VARCHAR(255) COMMENT '封面图路径',
+    category_id INT COMMENT '分类ID',
+    user_id INT NOT NULL,
+    view_count INT DEFAULT 0 COMMENT '阅读量',
+    comment_count INT DEFAULT 0 COMMENT '评论数',
+    like_count INT DEFAULT 0 COMMENT '点赞数',
+    is_draft TINYINT(1) DEFAULT 0 COMMENT '草稿状态',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+-- 如果不使用 CONSTRAINT 关键字，数据库系统会自动为外键约束生成一个名称。不同的数据库系统生成的名称规则可能不同，而且自动生成的名称通常没有明确的语义，不利于后续的管理和维护
+    FOREIGN KEY (user_id) REFERENCES tb_user(id),
+    FOREIGN KEY (category_id) REFERENCES tb_categories(id),
+    INDEX idx_user (user_id),
+    INDEX idx_category (category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tb_categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(30) NOT NULL UNIQUE COMMENT '分类名称',
+    description VARCHAR(100) COMMENT '分类描述',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tags (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(30) NOT NULL UNIQUE COMMENT '标签名称',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tb_article_tags (
+    article_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (article_id, tag_id),
+-- ON DELETE CASCADE 是一个级联删除选项。当 tb_articles 表中某条记录被删除时，当前表中所有 article_id 引用该被删除记录 id 的记录也会被自动删除
+    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+    INDEX idx_tag (tag_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tb_comments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    article_id INT NOT NULL,
+    user_id INT NOT NULL,
+    parent_id INT DEFAULT NULL COMMENT '父评论ID',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES tb_user(id),
+    FOREIGN KEY (parent_id) REFERENCES tb_comments(id),
+    INDEX idx_article (article_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
