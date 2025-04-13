@@ -1,7 +1,7 @@
 package com.techblog.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.techblog.entity.UserInfo;
+import com.techblog.entity.user.UserInfo;
 
 public interface UserInfoMapper extends BaseMapper<UserInfo> {
 

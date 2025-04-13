@@ -2,14 +2,10 @@ package com.techblog.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.techblog.dto.Result;
+import com.techblog.entity.article.Article;
 import com.techblog.entity.user.UserInfo;
 
+public interface IArticleService extends IService<Article>  {
 
-public interface IUserInfoService extends IService<UserInfo> {
-
-    Result addUserInfo(UserInfo userInfo);
-
-    Result updateUserInfo(UserInfo userInfo);
-
-
+    Result add(Article article);
 }

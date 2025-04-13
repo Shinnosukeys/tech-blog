@@ -3,7 +3,7 @@ package com.techblog.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
-import com.techblog.entity.User;
+import com.techblog.entity.user.User;
 
 import javax.servlet.http.HttpServletRequest;
 

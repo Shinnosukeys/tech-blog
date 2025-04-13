@@ -266,6 +266,8 @@ CREATE TABLE tb_articles (
     view_count INT DEFAULT 0 COMMENT '阅读量',
     comment_count INT DEFAULT 0 COMMENT '评论数',
     like_count INT DEFAULT 0 COMMENT '点赞数',
+    collect_count INT DEFAULT 0 COMMENT '收藏数',
+    coin_count INT DEFAULT 0 COMMENT '投币数',
     is_draft TINYINT(1) DEFAULT 0 COMMENT '草稿状态',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,

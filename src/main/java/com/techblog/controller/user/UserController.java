@@ -1,22 +1,20 @@
-package com.techblog.controller;
+package com.techblog.controller.user;
 
 
 import cn.hutool.core.bean.BeanUtil;
 import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
 import com.techblog.dto.UserDTO;
-import com.techblog.entity.User;
-import com.techblog.entity.UserInfo;
+import com.techblog.entity.user.User;
+import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IUserInfoService;
 import com.techblog.service.IUserService;
 import com.techblog.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 @Slf4j
 @RestController

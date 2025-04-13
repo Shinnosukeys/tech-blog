@@ -1,9 +1,7 @@
 package com.techblog.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.techblog.entity.User;
-
-import java.io.Serializable;
+import com.techblog.entity.user.User;
 
 // save(T entity)：将单个实体对象保存到数据库，若对象主键为空则执行插入操作。
 

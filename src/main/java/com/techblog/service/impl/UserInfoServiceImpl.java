@@ -3,7 +3,7 @@ package com.techblog.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.techblog.dto.Result;
 import com.techblog.dto.UserDTO;
-import com.techblog.entity.UserInfo;
+import com.techblog.entity.user.UserInfo;
 import com.techblog.mapper.UserInfoMapper;
 import com.techblog.service.IUserInfoService;
 import com.techblog.utils.UserHolder;

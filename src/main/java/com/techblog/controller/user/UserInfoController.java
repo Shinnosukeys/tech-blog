@@ -1,10 +1,8 @@
-package com.techblog.controller;
+package com.techblog.controller.user;
 
 import com.techblog.dto.Result;
-import com.techblog.dto.UserDTO;
-import com.techblog.entity.UserInfo;
+import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IUserInfoService;
-import com.techblog.utils.UserHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
