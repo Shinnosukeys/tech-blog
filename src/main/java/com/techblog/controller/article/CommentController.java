@@ -16,27 +16,27 @@ public class CommentController {
     private ICommentService commentService;
 
     @PostMapping("/add")
-    public Result addArticle(@RequestBody Request request) {
+    public Result addComment(@RequestBody Request request) {
         return Result.ok(commentService.save(request.getComment()));
     }
 
     @DeleteMapping("/delete/{commentId}")
-    public Result deleteArticle(@PathVariable Long commentId) {
+    public Result deleteComment(@PathVariable Long commentId) {
         return Result.ok(commentService.removeById(commentId));
     }
 
     @PutMapping("/update")
-    public Result updateArticle(@RequestBody Request request) {
+    public Result updateComment(@RequestBody Request request) {
         return Result.ok(commentService.updateById(request.getComment()));
     }
 
     @GetMapping("/get/{commentId}")
-    public Comment getArticle(@PathVariable Long commentId) {
+    public Comment getComment(@PathVariable Long commentId) {
         return commentService.getById(commentId);
     }
 
     @GetMapping("/list")
-    public List<Comment> listArticle() {
+    public List<Comment> listComment() {
         return commentService.list();
     }
 }
