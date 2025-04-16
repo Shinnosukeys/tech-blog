@@ -17,27 +17,43 @@ public class TagController {
     private ITagService tagService;
 
     @PostMapping("/add")
-    public Result addArticle(@RequestBody Request request) {
-        return Result.ok(tagService.save(request.getTag()));
+    public Result addTag(@RequestBody Request request) {
+        // 保存标签并关联文章和标签
+        List<Tag> tagList = request.getTagList();
+        for (Tag tag : tagList) {
+            // 保存标签
+            tagService.save(tag);
+            Integer tagId = tag.getId();
+        }
+
+        return Result.ok();
     }
 
     @DeleteMapping("/delete/{tagId}")
-    public Result deleteArticle(@PathVariable Long tagId) {
+    public Result deleteTag(@PathVariable Long tagId) {
         return Result.ok(tagService.removeById(tagId));
     }
 
     @PutMapping("/update")
-    public Result updateArticle(@RequestBody Request request) {
-        return Result.ok(tagService.updateById(request.getTag()));
+    public Result updateTag(@RequestBody Request request) {
+        // 保存标签并关联文章和标签
+        List<Tag> tagList = request.getTagList();
+        for (Tag tag : tagList) {
+            // 保存标签
+            tagService.save(tag);
+            Integer tagId = tag.getId();
+        }
+
+        return Result.ok();
     }
 
     @GetMapping("/get/{tagId}")
-    public Tag getArticle(@PathVariable Long tagId) {
+    public Tag getTag(@PathVariable Long tagId) {
         return tagService.getById(tagId);
     }
 
     @GetMapping("/list")
-    public List<Tag> listArticle() {
+    public List<Tag> listTag() {
         return tagService.list();
     }
 }
