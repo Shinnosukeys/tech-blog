@@ -1,10 +1,9 @@
 package com.techblog.controller.article;
 
 import com.techblog.dto.Result;
+import com.techblog.dto.Request;
 import com.techblog.entity.article.Article;
-import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IArticleService;
-import com.techblog.service.IUserInfoService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -18,8 +17,8 @@ public class ArticleController {
     private IArticleService articleService;
 
     @PostMapping("/add")
-    public Result addArticle(@RequestBody Article article) {
-        return Result.ok(articleService.save(article));
+    public Result addArticle(@RequestBody Request request) {
+        return Result.ok(articleService.save(request.getArticle()));
     }
 
     @DeleteMapping("/delete/{articleId}")
@@ -28,8 +27,8 @@ public class ArticleController {
     }
 
     @PutMapping("/update")
-    public Result updateArticle(@RequestBody Article article) {
-        return Result.ok(articleService.updateById(article));
+    public Result updateArticle(@RequestBody Request request) {
+        return Result.ok(articleService.updateById(request.getArticle()));
     }
 
     @GetMapping("/get/{articleId}")
@@ -41,4 +40,5 @@ public class ArticleController {
     public List<Article> listArticle() {
         return articleService.list();
     }
+
 }

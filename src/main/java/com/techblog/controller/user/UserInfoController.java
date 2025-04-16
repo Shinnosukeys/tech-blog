@@ -1,6 +1,7 @@
 package com.techblog.controller.user;
 
 import com.techblog.dto.Result;
+import com.techblog.dto.Request;
 import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IUserInfoService;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,8 @@ public class UserInfoController {
     private IUserInfoService userInfoService;
 
     @PostMapping("/add")
-    public Result addUserInfo(@RequestBody UserInfo userInfo) {
-        return userInfoService.addUserInfo(userInfo);
+    public Result addUserInfo(@RequestBody Request request) {
+        return userInfoService.addUserInfo(request.getUserInfo());
     }
 
     @DeleteMapping("/delete/{userId}")
@@ -26,8 +27,8 @@ public class UserInfoController {
     }
 
     @PutMapping("/update")
-    public Result updateUserInfo(@RequestBody UserInfo userInfo) {
-        return userInfoService.updateUserInfo(userInfo);
+    public Result updateUserInfo(@RequestBody Request request) {
+        return userInfoService.updateUserInfo(request.getUserInfo());
     }
 
     @GetMapping("/get/{userId}")

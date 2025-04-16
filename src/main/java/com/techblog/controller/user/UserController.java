@@ -2,9 +2,9 @@ package com.techblog.controller.user;
 
 
 import cn.hutool.core.bean.BeanUtil;
-import com.techblog.dto.LoginFormDTO;
 import com.techblog.dto.Result;
 import com.techblog.dto.UserDTO;
+import com.techblog.dto.Request;
 import com.techblog.entity.user.User;
 import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IUserInfoService;
@@ -38,12 +38,12 @@ public class UserController {
 
     /**
      * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * @param request 登录参数，包含手机号、验证码；或者手机号、密码
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm){
+    public Result login(@RequestBody Request request){
         // 实现登录功能
-        return userService.loginByJWT(loginForm);
+        return userService.loginByJWT(request.getLoginFormDTO());
     }
 
     /**

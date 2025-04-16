@@ -20,6 +20,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public Result add(Article article) {
         save(article);
+        articleMapper.insert(article);
         return Result.ok();
     }
 }

@@ -15,16 +15,34 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @TableName("tb_comments")
 public class Comment implements Serializable {
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
+    /**
+     * 评论的内容
+     */
     private String content;
 
+    /**
+     * 文章id
+     */
     private Integer articleId;
 
+    /**
+     * 用户id
+     */
     private Integer userId;
 
+    /**
+     * 父评论id，如果没有父评论，则为-1
+     */
     private Integer parentId;
 
+    /**
+     * 评论时间
+     */
     private LocalDateTime createdAt;
 }
