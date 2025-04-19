@@ -22,10 +22,17 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // 檢查是否為靜態資源請求
+        String requestURI = request.getRequestURI();
+        if (isStaticResource(requestURI)) {
+            return true;
+        }
+
         // 1. 获取请求头中的 JWT（格式：Bearer <jwt>）
         String tokenWithPrefix = request.getHeader(JwtConstants.AUTHORIZATION_HEADER);
         if (StrUtil.isBlank(tokenWithPrefix)) {
-            return true; // 匿名请求放行（根据业务调整）
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
         }
 
         // 2. 剥离 Bearer 前缀
@@ -48,7 +55,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
             // 5. 提取用户信息并封装为 UserDTO
             UserDTO userDTO = new UserDTO();
-            userDTO.setId(Long.valueOf(claims.getSubject()));
+            userDTO.setId(Integer.valueOf(claims.getSubject()));
             userDTO.setNickName((String) claims.get("nickName"));
             userDTO.setIcon((String) claims.get("icon"));
 
@@ -69,5 +76,18 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         // 清除 ThreadLocal，避免内存泄漏
         UserHolder.removeUser();
+    }
+
+    /**
+     * 判斷是否為靜態資源請求
+     */
+    private boolean isStaticResource(String requestURI) {
+        return requestURI.endsWith(".html") ||
+               requestURI.endsWith(".css") ||
+               requestURI.endsWith(".js") ||
+               requestURI.endsWith(".ico") ||
+               requestURI.startsWith("/images/") ||
+               requestURI.startsWith("/css/") ||
+               requestURI.startsWith("/js/");
     }
 }

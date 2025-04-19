@@ -158,7 +158,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result sign() {
         // 1.获取当前登录用户
-        Long userId = UserHolder.getUser().getId();
+        Integer userId = UserHolder.getUser().getId();
         // 2.获取日期
         LocalDateTime now = LocalDateTime.now();
         // 3.拼接key
@@ -174,7 +174,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result signCount() {
         // 1.获取当前登录用户
-        Long userId = UserHolder.getUser().getId();
+        Integer userId = UserHolder.getUser().getId();
         // 2.获取日期
         LocalDateTime now = LocalDateTime.now();
         // 3.拼接key
