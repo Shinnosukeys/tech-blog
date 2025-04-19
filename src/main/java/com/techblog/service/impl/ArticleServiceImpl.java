@@ -71,4 +71,23 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 7.返回
         return Result.ok(article);
     }
+
+    @Override
+    public boolean updateById(Article article) {
+        // 1.檢查文章是否存在
+        Article existingArticle = articleMapper.selectById(article.getId());
+        if (existingArticle == null) {
+            log.warn("嘗試更新不存在的文章，ID: {}", article.getId());
+            return false;
+        }
+        
+        // 2.修改數據庫
+        boolean success = super.updateById(article);
+        if (success) {
+            // 3.刪除緩存
+            String key = CACHE_ARTICLE_KEY + article.getId();
+            stringRedisTemplate.delete(key);
+        }
+        return success;
+    }
 }

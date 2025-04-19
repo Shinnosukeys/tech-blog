@@ -52,7 +52,17 @@ public class ArticleController {
 
     @PutMapping("/update")
     public Result updateArticle(@RequestBody Request request) {
-        return Result.ok(articleService.updateById(request.getArticle()));
+        Article article = request.getArticle();
+        if (article == null || article.getId() == null) {
+            return Result.fail("文章ID不能為空");
+        }
+        
+        boolean success = articleService.updateById(article);
+        if (success) {
+            return Result.ok("文章更新成功");
+        } else {
+            return Result.fail("文章更新失敗，可能文章不存在");
+        }
     }
 
     @GetMapping("/get/{articleId}")

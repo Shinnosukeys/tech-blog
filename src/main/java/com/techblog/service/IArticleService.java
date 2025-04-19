@@ -9,4 +9,6 @@ public interface IArticleService extends IService<Article>  {
     Result add(Article article);
 
     Result queryById(Integer articleId);
+
+    boolean updateById(Article article);
 }
