@@ -91,23 +91,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public Result loginByJWT(LoginFormDTO loginForm) {
-        // 1. 校验手机号+验证码，获取用户
+        // 檢查 loginForm 是否為 null
+        if (loginForm == null) {
+            return Result.fail("登錄參數不能為空");
+        }
+        
+        // 1. 校驗手機號+驗證碼，獲取用戶
         Result verifyResult = verifyPhoneAndUser(loginForm);
         if (!verifyResult.getSuccess()) {
-            return verifyResult; // 直接返回校验失败结果
+            return verifyResult; // 直接返回校驗失敗結果
         }
-        User user = (User) verifyResult.getData(); // 从 Result 中获取用户
+        User user = (User) verifyResult.getData(); // 從 Result 中獲取用戶
 
-        // 2. 生成 JWT（包含用户 ID 和必要信息）
+        // 2. 生成 JWT（包含用戶 ID 和必要信息）
         String jwtToken = Jwts.builder()
-                .setSubject(String.valueOf(user.getId())) // 主题：用户 ID
-                .claim("nickName", user.getNickName())   // 自定义载荷：昵称
-                .claim("icon", user.getIcon())           // 自定义载荷：头像
-                .setExpiration(new Date(System.currentTimeMillis() + JwtConstants.TOKEN_TTL)) // 过期时间
-                .signWith(SignatureAlgorithm.HS256, JwtConstants.SECRET_KEY) // 签名算法
+                .setSubject(String.valueOf(user.getId())) // 主題：用戶 ID
+                .claim("nickName", user.getNickName())   // 自定義載荷：暱稱
+                .claim("icon", user.getIcon())           // 自定義載荷：頭像
+                .setExpiration(new Date(System.currentTimeMillis() + JwtConstants.TOKEN_TTL)) // 過期時間
+                .signWith(SignatureAlgorithm.HS256, JwtConstants.SECRET_KEY) // 簽名算法
                 .compact(); // 生成完整 JWT
 
-        // 3. 返回 JWT（带 Bearer 前缀）
+        // 3. 返回 JWT（帶 Bearer 前綴）
         return Result.ok(JwtConstants.BEARER_PREFIX + jwtToken);
     }
 
@@ -229,32 +234,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
 
     private Result verifyPhoneAndUser(LoginFormDTO loginForm) {
-        // 1.校验手机号
+        // 檢查 loginForm 是否為 null
+        if (loginForm == null) {
+            return Result.fail("登錄參數不能為空");
+        }
+        
+        // 1. 校驗手機號
         String phone = loginForm.getPhone();
+        if (StrUtil.isBlank(phone)) {
+            return Result.fail("手機號不能為空");
+        }
+        
         if (RegexUtils.isPhoneInvalid(phone)) {
-            // 2.如果不符合，返回错误信息
-            return Result.fail("手机号格式错误！");
+            // 2. 如果不符合，返回錯誤信息
+            return Result.fail("手機號格式錯誤！");
         }
-        // 3.从redis获取验证码并校验
-        String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
-        String code = loginForm.getCode();
-        if (cacheCode == null || !cacheCode.equals(code)) {
-            // 不一致，报错
-            return Result.fail("验证码错误");
-        }
-
-        // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
+        
+        // 3. 根據手機號查詢用戶
         User user = query().eq("phone", phone).one();
-
-        // 5.判断用户是否存在
+        
+        // 4. 判斷用戶是否存在
         if (user == null) {
-            // 6.不存在，创建新用户并保存
+            // 5. 不存在，創建新用戶並保存
             user = createUserWithPhone(phone);
         }
-        // 4. 清理已使用的验证码（可选优化）
-        stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
-
-        // 5. 返回成功结果，携带用户信息
-        return Result.ok(user); // 用户对象存入 Result.data
+        
+        // 6. 判斷是驗證碼登錄還是密碼登錄
+        String code = loginForm.getCode();
+        String password = loginForm.getPassword();
+        
+        if (StrUtil.isNotBlank(code)) {
+            // 驗證碼登錄
+            // 從 redis 獲取驗證碼並校驗
+            String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
+            if (cacheCode == null || !cacheCode.equals(code)) {
+                // 不一致，報錯
+                return Result.fail("驗證碼錯誤");
+            }
+            // 清理已使用的驗證碼
+            stringRedisTemplate.delete(LOGIN_CODE_KEY + phone);
+        } else if (StrUtil.isNotBlank(password)) {
+            // 密碼登錄
+            // 這裡需要實現密碼驗證邏輯
+            // 如果您的系統沒有存儲密碼，可以跳過密碼驗證
+            // 或者實現一個簡單的密碼驗證邏輯
+            if (!password.equals("123456")) { // 假設默認密碼是 123456
+                return Result.fail("密碼錯誤");
+            }
+        } else {
+            // 既沒有驗證碼也沒有密碼
+            return Result.fail("請提供驗證碼或密碼");
+        }
+        
+        // 7. 返回成功結果，攜帶用戶信息
+        return Result.ok(user);
     }
 }

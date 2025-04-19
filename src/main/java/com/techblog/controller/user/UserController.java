@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.techblog.dto.Result;
 import com.techblog.dto.UserDTO;
 import com.techblog.dto.Request;
+import com.techblog.dto.LoginFormDTO;
 import com.techblog.entity.user.User;
 import com.techblog.entity.user.UserInfo;
 import com.techblog.service.IUserInfoService;
@@ -42,8 +43,27 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result login(@RequestBody Request request){
-        // 实现登录功能
+        // 檢查 loginFormDTO 是否為 null
+        if (request == null || request.getLoginFormDTO() == null) {
+            return Result.fail("登錄參數不能為空");
+        }
+        
+        // 實現登錄功能
         return userService.loginByJWT(request.getLoginFormDTO());
+    }
+    
+    /**
+     * 直接使用 LoginFormDTO 登錄
+     */
+    @PostMapping("/login/direct")
+    public Result loginDirect(@RequestBody LoginFormDTO loginFormDTO) {
+        // 檢查 loginFormDTO 是否為 null
+        if (loginFormDTO == null) {
+            return Result.fail("登錄參數不能為空");
+        }
+        
+        // 實現登錄功能
+        return userService.loginByJWT(loginFormDTO);
     }
 
     /**

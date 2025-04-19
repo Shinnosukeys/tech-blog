@@ -56,8 +56,8 @@ public class ArticleController {
     }
 
     @GetMapping("/get/{articleId}")
-    public Article getArticle(@PathVariable Long articleId) {
-        return articleService.getById(articleId);
+    public Result getArticle(@PathVariable Integer articleId) {
+        return articleService.queryById(articleId);
     }
 
     @GetMapping("/list")
