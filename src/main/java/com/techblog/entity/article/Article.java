@@ -3,12 +3,14 @@ package com.techblog.entity.article;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -95,4 +97,7 @@ public class Article implements Serializable {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+
+    @TableField(exist = false)
+    private List<Tag> tagList;
 }

@@ -7,6 +7,9 @@ import com.techblog.entity.article.Tag;
 import com.techblog.service.IArticleService;
 import com.techblog.service.IArticleTagService;
 import com.techblog.service.ITagService;
+import com.techblog.utils.UserHolder;
+
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,48 +29,24 @@ public class ArticleController {
     private IArticleTagService articleTagService;
 
     @PostMapping("/add")
-    public Result addArticle(@RequestBody Request request) {
-        // 保存文章
-        Article article = request.getArticle();
-        articleService.save(article);
-        Integer articleId = article.getId();
-
-        // 保存标签并关联文章和标签
-        List<Tag> tagList = request.getTagList();
-        for (Tag tag : tagList) {
-            // 保存标签
-            tagService.save(tag);
-            Integer tagId = tag.getId();
-
-            // 插入关联记录到 tb_article_tags 表
-            articleTagService.saveArticleTag(articleId, tagId);
-        }
-        return Result.ok();
+    public Result addArticleWithTag(@RequestBody Request request) {
+        return articleService.addArticleWithTag(request.getArticle(), request.getTagList());
     }
 
     @DeleteMapping("/delete/{articleId}")
-    public Result deleteArticle(@PathVariable Long articleId) {
-        return Result.ok(articleService.removeById(articleId));
+    public Result deleteArticle(@PathVariable Integer articleId) {
+        return articleService.deleteArticle(articleId);
     }
 
     @PutMapping("/update")
     public Result updateArticle(@RequestBody Request request) {
-        Article article = request.getArticle();
-        if (article == null || article.getId() == null) {
-            return Result.fail("文章ID不能為空");
-        }
-        
-        boolean success = articleService.updateById(article);
-        if (success) {
-            return Result.ok("文章更新成功");
-        } else {
-            return Result.fail("文章更新失敗，可能文章不存在");
-        }
+        return articleService.updateArticle(request.getArticle());
+
     }
 
     @GetMapping("/get/{articleId}")
     public Result getArticle(@PathVariable Integer articleId) {
-        return articleService.queryById(articleId);
+        return articleService.queryArticleById(articleId);
     }
 
     @GetMapping("/list")

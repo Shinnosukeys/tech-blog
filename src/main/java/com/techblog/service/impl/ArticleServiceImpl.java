@@ -1,17 +1,27 @@
 package com.techblog.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techblog.dto.Result;
 import com.techblog.entity.article.Article;
+import com.techblog.entity.article.Tag;
 import com.techblog.mapper.ArticleMapper;
 import com.techblog.service.IArticleService;
+import com.techblog.service.ITagService;
+import com.techblog.service.IArticleTagService;
+import com.techblog.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,68 +36,77 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Autowired
     private ObjectMapper objectMapper;
     
+    @Autowired
+    private ITagService tagService;
+    
+    @Autowired
+    private IArticleTagService articleTagService;
+    
     private static final String CACHE_ARTICLE_KEY = "cache:article:";
     private static final long CACHE_ARTICLE_TTL = 30;
 
     @Override
-    public Result add(Article article) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result addArticleWithTag(Article article, List<Tag> tagList) {
+        if (article == null || StringUtils.isBlank(article.getTitle())) {
+            return Result.fail("文章标题不能为空");
+        }
+        if (tagList.isEmpty()) {
+            return Result.fail("至少需要1个标签");
+        }
+
+        Integer userId = UserHolder.getUser().getId();
+        LocalDateTime now = LocalDateTime.now();
+        article.setUserId(userId).setCreatedAt(now).setUpdatedAt(now);
+
         save(article);
-        articleMapper.insert(article);
         return Result.ok();
     }
 
     @Override
-    public Result queryById(Integer articleId) {
-        // 1.從redis查詢文章緩存
-        String key = CACHE_ARTICLE_KEY + articleId;
-        String cacheArticle = stringRedisTemplate.opsForValue().get(key);
-        
-        // 2.判斷是否存在
-        if (cacheArticle != null) {
-            try {
-                // 3.存在，直接返回
-                Article article = objectMapper.readValue(cacheArticle, Article.class);
-                return Result.ok(article);
-            } catch (Exception e) {
-                log.error("解析緩存文章失敗", e);
-            }
-        }
-        
-        // 4.不存在，根據id查詢數據庫
-        Article article = articleMapper.selectById(articleId);
-        
-        // 5.不存在，返回錯誤
+    public Result deleteArticle(Integer articleId) {
+        Integer userId = UserHolder.getUser().getId();
+
+        Article article = getById(articleId);
         if (article == null) {
             return Result.fail("文章不存在");
         }
-        
-        // 6.存在，寫入redis
-        try {
-            stringRedisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(article), CACHE_ARTICLE_TTL, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.error("寫入緩存文章失敗", e);
+
+        if (!article.getUserId().equals(userId)) {
+            return Result.fail("您沒有權限刪除此文章");
         }
-        
-        // 7.返回
-        return Result.ok(article);
+        removeById(articleId);
+        return Result.ok();
     }
 
+
+
     @Override
-    public boolean updateById(Article article) {
-        // 1.檢查文章是否存在
-        Article existingArticle = articleMapper.selectById(article.getId());
-        if (existingArticle == null) {
-            log.warn("嘗試更新不存在的文章，ID: {}", article.getId());
-            return false;
+    public Result queryArticleById(Integer articleId) {
+        return Result.ok(getById(articleId));
+    }
+    
+    @Override
+    public Result updateArticle(Article article) {
+        if (article == null || article.getId() == null) {
+            return Result.fail("文章ID不能為空");
         }
-        
-        // 2.修改數據庫
-        boolean success = super.updateById(article);
+
+        Article queryArticle = getById(article.getId());
+        if (queryArticle == null) {
+            return Result.fail("文章不存在");
+        }
+
+        Integer userId = UserHolder.getUser().getId();
+        if (!queryArticle.getUserId().equals(userId)) {
+            return Result.fail("您沒有權限刪除此文章");
+        }
+
+        boolean success = updateById(article);
         if (success) {
-            // 3.刪除緩存
-            String key = CACHE_ARTICLE_KEY + article.getId();
-            stringRedisTemplate.delete(key);
+            return Result.ok("文章更新成功");
+        } else {
+            return Result.fail("文章更新失敗，可能文章不存在");
         }
-        return success;
     }
 }
