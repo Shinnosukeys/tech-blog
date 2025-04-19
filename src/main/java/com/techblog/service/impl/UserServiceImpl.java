@@ -15,7 +15,7 @@ import com.techblog.mapper.UserInfoMapper;
 import com.techblog.mapper.UserMapper;
 import com.techblog.service.IUserInfoService;
 import com.techblog.service.IUserService;
-import com.techblog.utils.RedisConstants;
+import com.techblog.utils.constants.RedisConstants;
 import com.techblog.utils.RegexUtils;
 import com.techblog.utils.UserHolder;
 import com.techblog.utils.constants.JwtConstants;
@@ -37,8 +37,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.Date;
 
-import static com.techblog.utils.RedisConstants.*;
-import static com.techblog.utils.SystemConstants.USER_NICK_NAME_PREFIX;
+import static com.techblog.utils.constants.RedisConstants.*;
+import static com.techblog.utils.constants.SystemConstants.USER_NICK_NAME_PREFIX;
 
 
 @Slf4j

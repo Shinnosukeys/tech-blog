@@ -1,4 +1,4 @@
-package com.techblog.utils;
+package com.techblog.utils.constants;
 
 public class SystemConstants {
     public static final String IMAGE_UPLOAD_DIR = "/Users/gaojianheng/Desktop/nginx/hmdp/imgs/";

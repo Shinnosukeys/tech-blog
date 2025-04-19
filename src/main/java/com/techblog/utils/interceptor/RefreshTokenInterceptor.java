@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.techblog.utils.RedisConstants.LOGIN_USER_KEY;
-import static com.techblog.utils.RedisConstants.LOGIN_USER_TTL;
+import static com.techblog.utils.constants.RedisConstants.LOGIN_USER_KEY;
+import static com.techblog.utils.constants.RedisConstants.LOGIN_USER_TTL;
 
 
 @Component

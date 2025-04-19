@@ -9,4 +9,5 @@ public class JwtConstants {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     // Bearer 前缀
     public static final String BEARER_PREFIX = "Bearer ";
+
 }

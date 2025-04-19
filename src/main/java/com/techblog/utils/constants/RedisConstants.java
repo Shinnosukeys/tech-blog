@@ -1,4 +1,4 @@
-package com.techblog.utils;
+package com.techblog.utils.constants;
 
 public class RedisConstants {
     public static final String LOGIN_CODE_KEY = "login:code:";
@@ -11,8 +11,7 @@ public class RedisConstants {
     public static final Long CACHE_SHOP_TTL = 30L;
     public static final String CACHE_SHOP_KEY = "cache:shop:";
 
-    public static final String LOCK_SHOP_KEY = "lock:shop:";
-    public static final String SHOP_LOCK_KEY = "cache:shop:lock:";
+    public static final String SHOP_Article_KEY = "cache:shop:lock:";
     public static final Long LOCK_SHOP_TTL = 10L;
 
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
@@ -21,4 +20,5 @@ public class RedisConstants {
     public static final String SHOP_GEO_KEY = "shop:geo:";
     public static final String USER_SIGN_KEY = "sign:";
     public static final String CACHE_SHOP_TYPE_LIST = "cache:shop-type-list";
+
 }

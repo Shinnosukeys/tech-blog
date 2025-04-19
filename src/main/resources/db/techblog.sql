@@ -68,44 +68,6 @@ CREATE TABLE `tb_seckill_voucher`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '秒杀优惠券表，与优惠券是一对一关系' ROW_FORMAT = Compact;
 
 -- ----------------------------
--- Table structure for tb_shop
--- ----------------------------
-DROP TABLE IF EXISTS `tb_shop`;
-CREATE TABLE `tb_shop`  (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商铺名称',
-  `type_id` INT UNSIGNED NOT NULL COMMENT '商铺类型的id',
-  `images` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商铺图片，多个图片以\',\'隔开',
-  `area` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '商圈，例如陆家嘴',
-  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '地址',
-  `x` double UNSIGNED NOT NULL COMMENT '经度',
-  `y` double UNSIGNED NOT NULL COMMENT '维度',
-  `avg_price` bigint(10) UNSIGNED NULL DEFAULT NULL COMMENT '均价，取整数',
-  `sold` int(10) UNSIGNED NOT NULL COMMENT '销量',
-  `comments` int(10) UNSIGNED NOT NULL COMMENT '评论数量',
-  `score` int(2) UNSIGNED NOT NULL COMMENT '评分，1~5分，乘10保存，避免小数',
-  `open_hours` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '营业时间，例如 10:00-22:00',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `foreign_key_type`(`type_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
--- Table structure for tb_shop_type
--- ----------------------------
-DROP TABLE IF EXISTS `tb_shop_type`;
-CREATE TABLE `tb_shop_type`  (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '类型名称',
-  `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '图标',
-  `sort` int(3) UNSIGNED NULL DEFAULT NULL COMMENT '顺序',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
 -- Table structure for tb_user
 -- ----------------------------
 DROP TABLE IF EXISTS `tb_user`;
@@ -141,41 +103,39 @@ CREATE TABLE `tb_user_info`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
--- Table structure for tb_voucher
+-- Table structure for tb_discount_code
 -- ----------------------------
-DROP TABLE IF EXISTS `tb_voucher`;
-CREATE TABLE `tb_voucher`  (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `shop_id` INT UNSIGNED NULL DEFAULT NULL COMMENT '商铺id',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '代金券标题',
-  `sub_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '副标题',
-  `rules` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '使用规则',
-  `pay_value` bigint(10) UNSIGNED NOT NULL COMMENT '支付金额，单位是分。例如200代表2元',
-  `actual_value` bigint(10) NOT NULL COMMENT '抵扣金额，单位是分。例如200代表2元',
-  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0,普通券；1,秒杀券',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '1,上架; 2,下架; 3,过期',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
+DROP TABLE IF EXISTS `tb_discount_code`;
+CREATE TABLE `tb_discount_code` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `code` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL UNIQUE COMMENT '优惠码，唯一',
+    `title` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '优惠码标题',
+    `sub_title` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '副标题',
+    `rules` VARCHAR(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '使用规则',
+    `discount_rate` DECIMAL(3, 2) NOT NULL COMMENT '折扣率，如0.8代表八折',
+    `start_time` TIMESTAMP NOT NULL COMMENT '优惠码开始时间',
+    `end_time` TIMESTAMP NOT NULL COMMENT '优惠码结束时间',
+    `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '1,可用; 2,已领取; 3,已过期',
+    `create_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
--- Table structure for tb_voucher_order
+-- Table structure for tb_discount_code_order
 -- ----------------------------
-DROP TABLE IF EXISTS `tb_voucher_order`;
-CREATE TABLE `tb_voucher_order`  (
-  `id` INT NOT NULL COMMENT '主键',
-  `user_id` INT UNSIGNED NOT NULL COMMENT '下单的用户id',
-  `voucher_id` INT UNSIGNED NOT NULL COMMENT '购买的代金券id',
-  `pay_type` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '支付方式 1：余额支付；2：支付宝；3：微信',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '订单状态，1：未支付；2：已支付；3：已核销；4：已取消；5：退款中；6：已退款',
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
-  `pay_time` timestamp NULL DEFAULT NULL COMMENT '支付时间',
-  `use_time` timestamp NULL DEFAULT NULL COMMENT '核销时间',
-  `refund_time` timestamp NULL DEFAULT NULL COMMENT '退款时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
+DROP TABLE IF EXISTS `tb_discount_code_order`;
+CREATE TABLE `tb_discount_code_order` (
+    `id` INT NOT NULL COMMENT '主键',
+    `user_id` INT UNSIGNED NOT NULL COMMENT '领取优惠码的用户id',
+    `discount_code_id` INT UNSIGNED NOT NULL COMMENT '领取的优惠码id',
+    `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '订单状态，1：已领取；2：已使用；3：已过期；4：已失效',
+    `create_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
+    `use_time` TIMESTAMP NULL DEFAULT NULL COMMENT '使用时间',
+    `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`) USING BTREE,
+    FOREIGN KEY (`discount_code_id`) REFERENCES `tb_discount_code`(`id`)
+    ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -186,66 +146,57 @@ SET FOREIGN_KEY_CHECKS = 1;
 DROP TABLE IF EXISTS tb_article_tags;
 DROP TABLE IF EXISTS tb_comments;
 DROP TABLE IF EXISTS tb_articles;
-DROP TABLE IF EXISTS tb_categories;
 DROP TABLE IF EXISTS tb_tags;
-
--- 創建分類表（先創建，因為 tb_articles 依賴它）
-CREATE TABLE tb_categories (
-                               id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                               name VARCHAR(30) NOT NULL UNIQUE COMMENT '分類名稱',
-                               description VARCHAR(100) COMMENT '分類描述',
-                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 創建標籤表
 CREATE TABLE tb_tags (
-                         id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                         name VARCHAR(30) NOT NULL UNIQUE COMMENT '標籤名稱',
-                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(30) NOT NULL UNIQUE COMMENT '標籤名稱',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 創建文章表
 CREATE TABLE tb_articles (
-                             id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                             title VARCHAR(120) NOT NULL COMMENT '標題',
-                             slug VARCHAR(120) UNIQUE COMMENT 'SEO友好URL',
-                             content LONGTEXT NOT NULL COMMENT '正文（支持Markdown）',
-                             summary VARCHAR(255) COMMENT '摘要',
-                             cover_image VARCHAR(255) COMMENT '封面圖路徑',
-                             category_id INT UNSIGNED COMMENT '分類ID',
-                             user_id INT UNSIGNED COMMENT '用戶ID',
-                             view_count INT UNSIGNED DEFAULT 0 COMMENT '閱讀量',
-                             comment_count INT UNSIGNED DEFAULT 0 COMMENT '評論數',
-                             like_count INT UNSIGNED DEFAULT 0 COMMENT '點贊數',
-                             collect_count INT UNSIGNED DEFAULT 0 COMMENT '收藏數',
-                             coin_count INT UNSIGNED DEFAULT 0 COMMENT '投幣數',
-                             is_draft BOOLEAN DEFAULT FALSE COMMENT '草稿狀態',
-                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
-                             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
-                             FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE SET NULL,
-                             FOREIGN KEY (category_id) REFERENCES tb_categories(id) ON DELETE SET NULL
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(120) NOT NULL COMMENT '標題',
+    slug VARCHAR(120) UNIQUE COMMENT 'SEO友好URL',
+    content LONGTEXT NOT NULL COMMENT '正文（支持Markdown）',
+    summary VARCHAR(255) COMMENT '摘要',
+    cover_image VARCHAR(255) COMMENT '封面圖路徑',
+    category_id INT UNSIGNED COMMENT '分類ID',
+    user_id INT UNSIGNED COMMENT '用戶ID',
+    view_count INT UNSIGNED DEFAULT 0 COMMENT '閱讀量',
+    comment_count INT UNSIGNED DEFAULT 0 COMMENT '評論數',
+    like_count INT UNSIGNED DEFAULT 0 COMMENT '點贊數',
+    collect_count INT UNSIGNED DEFAULT 0 COMMENT '收藏數',
+    coin_count INT UNSIGNED DEFAULT 0 COMMENT '投幣數',
+    is_draft BOOLEAN DEFAULT FALSE COMMENT '草稿狀態',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+    FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES tb_categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 創建文章標籤關聯表
 CREATE TABLE tb_article_tags (
-                                 article_id INT UNSIGNED NOT NULL,
-                                 tag_id INT UNSIGNED NOT NULL,
-                                 PRIMARY KEY (article_id, tag_id),
-                                 FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
-                                 FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
+    article_id INT UNSIGNED NOT NULL,
+    tag_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (article_id, tag_id),
+    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 創建評論表
 CREATE TABLE tb_comments (
-                             id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-                             content TEXT NOT NULL,
-                             article_id INT UNSIGNED NOT NULL,
-                             user_id INT UNSIGNED NOT NULL,
-                             parent_id INT UNSIGNED DEFAULT NULL COMMENT '父評論ID',
-                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                             FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
-                             FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
-                             FOREIGN KEY (parent_id) REFERENCES tb_comments(id) ON DELETE CASCADE
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    content TEXT NOT NULL,
+    article_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    parent_id INT UNSIGNED DEFAULT NULL COMMENT '父評論ID',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES tb_comments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
