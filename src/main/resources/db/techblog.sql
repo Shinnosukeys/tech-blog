@@ -254,62 +254,118 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ----------------------------
 -- New
 -- ----------------------------
-CREATE TABLE tb_articles (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(120) NOT NULL COMMENT '标题',
-    slug VARCHAR(120) UNIQUE COMMENT 'SEO友好URL',
-    content LONGTEXT NOT NULL COMMENT '正文（支持Markdown）',
-    summary VARCHAR(255) COMMENT '摘要',
-    cover_image VARCHAR(255) COMMENT '封面图路径',
-    category_id INT COMMENT '分类ID',
-    user_id INT NOT NULL,
-    view_count INT DEFAULT 0 COMMENT '阅读量',
-    comment_count INT DEFAULT 0 COMMENT '评论数',
-    like_count INT DEFAULT 0 COMMENT '点赞数',
-    collect_count INT DEFAULT 0 COMMENT '收藏数',
-    coin_count INT DEFAULT 0 COMMENT '投币数',
-    is_draft TINYINT(1) DEFAULT 0 COMMENT '草稿状态',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
--- 如果不使用 CONSTRAINT 关键字，数据库系统会自动为外键约束生成一个名称。不同的数据库系统生成的名称规则可能不同，而且自动生成的名称通常没有明确的语义，不利于后续的管理和维护
-    FOREIGN KEY (user_id) REFERENCES tb_user(id),
-    FOREIGN KEY (category_id) REFERENCES tb_categories(id),
-    INDEX idx_user (user_id),
-    INDEX idx_category (category_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- 先刪除表（如果存在）
+DROP TABLE IF EXISTS tb_article_tags;
+DROP TABLE IF EXISTS tb_comments;
+DROP TABLE IF EXISTS tb_articles;
+DROP TABLE IF EXISTS tb_categories;
+DROP TABLE IF EXISTS tb_tags;
 
+-- 創建分類表（先創建，因為 tb_articles 依賴它）
 CREATE TABLE tb_categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL UNIQUE COMMENT '分类名称',
-    description VARCHAR(100) COMMENT '分类描述',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                               id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                               name VARCHAR(30) NOT NULL UNIQUE COMMENT '分類名稱',
+                               description VARCHAR(100) COMMENT '分類描述',
+                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE tags (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL UNIQUE COMMENT '标签名称',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- 創建標籤表
+CREATE TABLE tb_tags (
+                         id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                         name VARCHAR(30) NOT NULL UNIQUE COMMENT '標籤名稱',
+                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- 創建文章表
+CREATE TABLE tb_articles (
+                             id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                             title VARCHAR(120) NOT NULL COMMENT '標題',
+                             slug VARCHAR(120) UNIQUE COMMENT 'SEO友好URL',
+                             content LONGTEXT NOT NULL COMMENT '正文（支持Markdown）',
+                             summary VARCHAR(255) COMMENT '摘要',
+                             cover_image VARCHAR(255) COMMENT '封面圖路徑',
+                             category_id INT UNSIGNED COMMENT '分類ID',
+                             user_id INT UNSIGNED COMMENT '用戶ID',
+                             view_count INT UNSIGNED DEFAULT 0 COMMENT '閱讀量',
+                             comment_count INT UNSIGNED DEFAULT 0 COMMENT '評論數',
+                             like_count INT UNSIGNED DEFAULT 0 COMMENT '點贊數',
+                             collect_count INT UNSIGNED DEFAULT 0 COMMENT '收藏數',
+                             coin_count INT UNSIGNED DEFAULT 0 COMMENT '投幣數',
+                             is_draft BOOLEAN DEFAULT FALSE COMMENT '草稿狀態',
+                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
+                             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                             FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE SET NULL,
+                             FOREIGN KEY (category_id) REFERENCES tb_categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 創建文章標籤關聯表
 CREATE TABLE tb_article_tags (
-    article_id INT NOT NULL,
-    tag_id INT NOT NULL,
-    PRIMARY KEY (article_id, tag_id),
--- ON DELETE CASCADE 是一个级联删除选项。当 tb_articles 表中某条记录被删除时，当前表中所有 article_id 引用该被删除记录 id 的记录也会被自动删除
-    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
-    INDEX idx_tag (tag_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                 article_id INT UNSIGNED NOT NULL,
+                                 tag_id INT UNSIGNED NOT NULL,
+                                 PRIMARY KEY (article_id, tag_id),
+                                 FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+                                 FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- 創建評論表
 CREATE TABLE tb_comments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    content TEXT NOT NULL,
-    article_id INT NOT NULL,
-    user_id INT NOT NULL,
-    parent_id INT DEFAULT NULL COMMENT '父评论ID',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES tb_user(id),
-    FOREIGN KEY (parent_id) REFERENCES tb_comments(id),
-    INDEX idx_article (article_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                             id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+                             content TEXT NOT NULL,
+                             article_id INT UNSIGNED NOT NULL,
+                             user_id INT UNSIGNED NOT NULL,
+                             parent_id INT UNSIGNED DEFAULT NULL COMMENT '父評論ID',
+                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                             FOREIGN KEY (article_id) REFERENCES tb_articles(id) ON DELETE CASCADE,
+                             FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
+                             FOREIGN KEY (parent_id) REFERENCES tb_comments(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 插入一些測試分類數據
+INSERT INTO tb_categories (name, description) VALUES
+                                                  ('技術', '技術相關文章'),
+                                                  ('生活', '生活隨筆'),
+                                                  ('教程', '實用教程');
+
+-- 插入一些測試標籤數據
+INSERT INTO tb_tags (name) VALUES
+                               ('Spring Boot'),
+                               ('Redis'),
+                               ('Docker'),
+                               ('Java'),
+                               ('生活日常');
+
+-- 插入測試文章數據
+INSERT INTO tb_articles (
+    title,
+    slug,
+    content,
+    summary,
+    cover_image,
+    category_id,
+    user_id,
+    view_count,
+    comment_count,
+    like_count,
+    collect_count,
+    coin_count,
+    is_draft
+) VALUES (
+             'Spring Boot 與 Redis 整合指南',
+             'spring-boot-redis-integration-guide',
+             '# Spring Boot 與 Redis 整合指南\n\n## 簡介\n\nRedis 是一個開源的內存數據結構存儲系統...',
+             '本文詳細介紹了如何在 Spring Boot 應用中整合 Redis，包括依賴配置、基本使用和代碼示例。',
+             'https://example.com/images/spring-boot-redis.jpg',
+             1,  -- 技術分類
+             1,  -- 用戶ID
+             100,
+             5,
+             20,
+             10,
+             2,
+             false
+         );
+
+-- 為文章添加標籤
+INSERT INTO tb_article_tags (article_id, tag_id) VALUES
+                                                     (1, 1), -- Spring Boot 標籤
+                                                     (1, 2); -- Redis 標籤
