@@ -23,7 +23,7 @@ public class TagController {
         for (Tag tag : tagList) {
             // 保存标签
             tagService.save(tag);
-            Integer tagId = tag.getId();
+            Long tagId = tag.getId();
         }
 
         return Result.ok();
@@ -41,7 +41,7 @@ public class TagController {
         for (Tag tag : tagList) {
             // 保存标签
             tagService.save(tag);
-            Integer tagId = tag.getId();
+            Long tagId = tag.getId();
         }
 
         return Result.ok();

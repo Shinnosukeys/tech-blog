@@ -56,7 +56,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return Result.fail("至少需要1个标签");
         }
 
-        Integer userId = UserHolder.getUser().getId();
+        Long userId = UserHolder.getUser().getId();
         LocalDateTime now = LocalDateTime.now();
         article.setUserId(userId).setCreatedAt(now).setUpdatedAt(now);
         save(article);
@@ -65,8 +65,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             Tag existingTag = tagService.lambdaQuery()
                     .eq(Tag::getName, tag.getName())
                     .one();
-            
-            Integer tagId;
+
+            Long tagId;
             if (existingTag != null) {
                 tagId = existingTag.getId();
             } else {
@@ -82,8 +82,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public Result deleteArticle(Integer articleId) {
-        Integer userId = UserHolder.getUser().getId();
+    public Result deleteArticle(Long articleId) {
+        Long userId = UserHolder.getUser().getId();
 
         Article article = getById(articleId);
         if (article == null) {
@@ -98,7 +98,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public Result queryArticleById(Integer articleId) {
+    public Result queryArticleById(Long articleId) {
         // redis逻辑过期策略
         Article article = cacheClient.queryWithLogicalExpire(
                 CACHE_ARTICLE_KEY,
@@ -129,7 +129,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return Result.fail("文章不存在");
         }
 
-        Integer userId = UserHolder.getUser().getId();
+        Long userId = UserHolder.getUser().getId();
         if (!queryArticle.getUserId().equals(userId)) {
             return Result.fail("您沒有權限刪除此文章");
         }

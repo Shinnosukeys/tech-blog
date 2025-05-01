@@ -23,7 +23,7 @@ public class UserInfo implements Serializable {
      * 主键，用户id
      */
     @TableId(value = "user_id", type = IdType.INPUT)
-    private Integer userId;
+    private Long userId;
 
     /**
      * 城市名称

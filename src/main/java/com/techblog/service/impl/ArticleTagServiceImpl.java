@@ -12,7 +12,7 @@ public class ArticleTagServiceImpl implements IArticleTagService {
     private ArticleTagMapper articleTagMapper;
 
     @Override
-    public void saveArticleTag(Integer articleId, Integer tagId) {
+    public void saveArticleTag(Long articleId, Long tagId) {
         articleTagMapper.insertArticleTag(articleId, tagId);
     }
 }

@@ -55,7 +55,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
             // 5. 提取用户信息并封装为 UserDTO
             UserDTO userDTO = new UserDTO();
-            userDTO.setId(Integer.valueOf(claims.getSubject()));
+            userDTO.setId(Long.valueOf(claims.getSubject()));
             userDTO.setNickName((String) claims.get("nickName"));
             userDTO.setIcon((String) claims.get("icon"));
 

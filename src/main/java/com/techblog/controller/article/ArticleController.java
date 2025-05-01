@@ -34,7 +34,7 @@ public class ArticleController {
     }
 
     @DeleteMapping("/delete/{articleId}")
-    public Result deleteArticle(@PathVariable Integer articleId) {
+    public Result deleteArticle(@PathVariable Long articleId) {
         return articleService.deleteArticle(articleId);
     }
 
@@ -45,7 +45,7 @@ public class ArticleController {
     }
 
     @GetMapping("/get/{articleId}")
-    public Result getArticle(@PathVariable Integer articleId) {
+    public Result getArticle(@PathVariable Long articleId) {
         return articleService.queryArticleById(articleId);
     }
 

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @TableName("tags")
 public class Tag implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     private String name;
 

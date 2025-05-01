@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @TableName("tb_article_tags")
 public class ArticleTag implements Serializable {
-    private Integer articleId;
+    private Long articleId;
 
-    private Integer tagId;
+    private Long tagId;
 }

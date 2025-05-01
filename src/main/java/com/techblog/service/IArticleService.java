@@ -11,9 +11,9 @@ public interface IArticleService extends IService<Article>  {
 
     Result addArticleWithTag(Article article, List<Tag> tagList);
 
-    Result queryArticleById(Integer articleId);
+    Result queryArticleById(Long articleId);
     
-    Result deleteArticle(Integer articleId);
+    Result deleteArticle(Long articleId);
     
     Result updateArticle(Article article);
 }

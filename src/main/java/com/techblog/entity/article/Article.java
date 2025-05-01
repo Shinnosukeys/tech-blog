@@ -21,17 +21,12 @@ public class Article implements Serializable {
      * 主键
      */
     @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
      * 标题
      */
     private String title;
-
-    /**
-     * SEO友好URL
-     */
-    private String slug;
 
     /**
      * 正文（支持Markdown）
@@ -49,14 +44,9 @@ public class Article implements Serializable {
     private String coverImage;
 
     /**
-     * 分类ID
-     */
-    private Integer categoryId;
-
-    /**
      * 用户ID
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * 阅读量
